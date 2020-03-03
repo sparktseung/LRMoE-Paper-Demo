@@ -16,7 +16,7 @@ library(CASdatasets)
 
 ## Introduction
 
-This document is Part I of a demo series of the `LRMoE` (Logit-weighted Reduced Moxture-of-Experts) package on a real dataset. By analysing a French motor third-party liability insurance dataset in [`CASdatasets`](http://dutangc.free.fr/pub/RRepos/web/CASdatasets-index.html), we will demonstrate the fitting procedure, diagnostics, visualization and predictive functions of the `LRMoE` package. In this document, we focus on data preprocessing, exploratory analysis and parameter initialization.
+This document is Part I of a demo series of the `LRMoE` (Logit-weighted Reduced Mixture-of-Experts) package on a real dataset. By analysing a French motor third-party liability insurance dataset in [`CASdatasets`](http://dutangc.free.fr/pub/RRepos/web/CASdatasets-index.html), we will demonstrate the fitting procedure, diagnostics, visualization and predictive functions of the `LRMoE` package. In this document, we focus on data preprocessing, exploratory analysis and parameter initialization.
 
 
 ## Data Preprocessing
