@@ -1,0 +1,361 @@
+---
+title: "LRMoE DemoData Fitting"
+author: "Spark Tseung"
+date: "March 2, 2020"
+output: 
+  pdf_document:
+    fig_caption: yes 
+    extra_dependencies: ["float"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+library(LRMoE)
+library(reshape2)
+library(matrixStats)
+```
+
+## Introduction
+
+This document contains the data fitting process for the dataset `DemoData` included in the `LRMoE` package. This serves as an example of using the main fitting function `LRMoE.fit` included in the package.
+
+## Data Loading
+
+The `DemoData` in the package can be loaded as follows. The data generation process has been described in a previous document.
+```{r}
+data("DemoData")
+```
+
+
+
+## Fitting `LRMoE`
+
+In this section, we demonstrate how to fit an LRMoE model in the package. In the current version of `LRMoE`, the minimal inputs required from the user are: response, covariates, number of component distributions to use, specification of component distributions, initial guesses of parameters.
+
+### Correctly Specified Model
+
+We first start with a correctly specified LRMoE with parameter guesses close to the true ones, which aims to show that the package can identify the true model when the component distributions are correctly given along with reasonable guesses of parameters.
+
+```{r, eval=TRUE}
+# Number of component distributions; Number of response dimension
+n.comp = 2 # = g
+dim.m =  2 # = d
+
+# Specify component distributions
+# by dimension (row) and by component (column)
+# Dimension is d * g
+comp.dist = matrix(c("poisson", "ZI-gammacount",
+                     "lnorm", "invgauss"),
+                   nrow = dim.m, byrow = TRUE)
+
+# Initial guesses of alpha: logit regression weights
+# Dimension is g * P
+alpha.init = matrix( c(0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0),
+                      nrow = n.comp, byrow = TRUE)
+
+# Initial guesses of zero-inflation probabilities
+# Dimension is d * g
+zero.init = matrix(c(0, 0.5, # ),
+                      0, 0),
+                   nrow = dim.m, byrow = TRUE)
+
+# Initial guesses of component distribution parameters
+# d-length list, where each elememtn is a g-length list of vectors
+params.init = list( list(c(10), c(40, 0.8)),
+                    list(c(3, 1), c(15, 15))
+                    )
+
+# Penalty for alpha: a single numeric for all logit regression weights
+hyper.alpha = 5
+
+# Penalty for component distribution parameters
+# Dimension is the same as params.guess
+hyper.params = list( list(c(1, Inf), c(9, 0.5, 9, 0.5)),
+                     list(c(Inf, 1, Inf), c(9, 0.5, 9, 0.5))
+                    )
+
+```
+
+Now we are ready to call the fitting function. It is optional to print out intermediate updates of parameters. (*Note: The fitting function takes about 5 minutes to run.*)
+
+```{r, eval=TRUE}
+fitted.model = LRMoEprivate::LRMoE.fit(Y = Y.obs, X = X.obs, n.comp = n.comp,
+                 comp.dist = comp.dist,
+                 alpha.init = alpha.init,
+                 zero.init = zero.init, params.init = params.init,
+                 penalty = TRUE,
+                 hyper.alpha = hyper.alpha, hyper.params = hyper.params,
+                 print = FALSE
+                 )
+
+```
+
+The fitting function will return a list of updated parameters, as well as the loglikelihood, Akaike Information Criterion (AIC) and Bayesian Information Criterion (BIC) of the fitted model. We observe that the fitted model is reasonbly close to the true model, considering simulation errors and loss of information due to data truncation and censoring.
+
+```{r, eval=TRUE}
+# Fitted logit regression weights
+fitted.model$alpha.fit
+# Fitted zero-inflation probabilities
+fitted.model$zero.fit
+# Fitted parameters of component distributions
+fitted.model$params.fit
+
+# Loglikelihood: with and without parameter penalty
+fitted.model$ll
+fitted.model$ll.np
+# AIC
+fitted.model$AIC
+# BIC
+fitted.model$BIC
+```
+
+
+### Mis-Specified Model
+
+In practice, it is almost impossible to know the **true** underlying distribution of data. Assume the user has conducted some preliminary analysis, and proposes to use the following LRMoE.
+
+```{r, eval=TRUE}
+# Number of component distributions; Number of response dimension
+n.comp = 2 # = g
+dim.m = 2 # = d
+
+# Specify component distributions
+comp.dist = matrix(c("ZI-poisson", "ZI-nbinom", 
+                     "burr", "gamma"),
+                   nrow = dim.m, byrow = TRUE)
+
+# Initial guesses of alpha: logit regression weights
+alpha.guess = matrix( c(0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0),
+                      nrow = n.comp, byrow = TRUE)
+
+# Initial guesses of zero-inflation probabilities
+zero.guess = matrix(c(0.5, 0.5,
+                      0, 0),
+                   nrow = dim.m, byrow = TRUE)
+
+# Initial guesses of component distribution parameters
+params.guess = list( list(c(10), c(25, 0.4)),
+                     list(c(5, 2, 30), c(1, 10))
+                    )
+
+# Penalty for alpha: a single numeric for all logit regression weights
+hyper.alpha = 5
+
+# Penalty for component distribution parameters
+# Dimension is the same as params.guess
+hyper.params = list( list(c(5, 5), c(5, 5)),
+                     list(c(5, 5, 5, 5, 5, 5), c(5, 5, 5, 5))
+                    )
+
+```
+
+The fitting function can be called similarly. (*Note: The fitting function takes about 10 minutes to run, mostly due to numerical integration and optimization of the Burr component.*)
+
+```{r, eval=TRUE}
+fitted.model.new = LRMoEprivate::LRMoE.fit(Y = Y.obs, X = X.obs, n.comp = n.comp,
+                     comp.dist = comp.dist,
+                     alpha.init = alpha.guess,
+                     zero.init = zero.guess, params.init = params.guess,
+                     penalty = TRUE,
+                     hyper.alpha = hyper.alpha, hyper.params = hyper.params,
+                     print = FALSE
+                     )
+```
+
+We can also examine the mis-specified model. Judging from the loglikelihood, it provides relatively worse fit to data compared with the true model.
+
+```{r, eval=TRUE}
+# Fitted logit regression weights
+fitted.model.new$alpha.fit
+# Fitted zero-inflation probabilities
+fitted.model.new$zero.fit
+# Fitted parameters of component distributions
+fitted.model.new$params.fit
+
+# Loglikelihood: with and without parameter penalty
+fitted.model.new$ll
+fitted.model.new$ll.np
+# AIC
+fitted.model.new$AIC
+# BIC
+fitted.model.new$BIC
+```
+
+
+## Some Model Visualization
+
+While loglikelihood can indicate to some extent the goodness-of-fit of the two models above, one may wish to visualize the models. 
+
+Model visualization in the presence of data censoring and truncation is somewhat delicate: for example, when plotting a histogram or QQ-plot, how does one represent censored data? One solution is to simply discard those censored data points when plotting. Since we have the complete dataset at hand, we will make use of it and plot all 10,000 data points, although the model is only fitted based on a (slightly smaller) subset.
+
+The fitted distribution by dimension against similated dataset are shown as follows.
+
+```{r, eval=TRUE, echo=FALSE}
+plot.series = seq(0, 50, 1)
+
+y.dens.vec = rep(0, length(plot.series))
+y.dens.vec.new = rep(0, length(plot.series))
+
+k = 1 # plot dimension
+sample.size = 10000
+for(i in 1:sample.size)
+{
+  weighting = predict.class.prob(X[i,], fitted.model$alpha.fit)
+  weighting.new = predict.class.prob(X[i,], fitted.model.new$alpha.fit)
+  
+  dens.series = matrix(0, ncol = n.comp, nrow = length(plot.series))
+  dens.series.new = matrix(0, ncol = n.comp, nrow = length(plot.series))
+  
+  for(j in 1:n.comp)
+  {
+    dens.series[,j] = fitted.model$zero.fit[k,j] * (plot.series==0)  + 
+      (1-fitted.model$zero.fit[k,j]) *
+      ind.dens.y.pos(fitted.model$comp.dist[k,j], fitted.model$params.fit[[k]][[j]], plot.series)
+    dens.series.new[,j] = fitted.model.new$zero.fit[k,j] * (plot.series==0) + 
+      (1-fitted.model.new$zero.fit[k,j]) * 
+      ind.dens.y.pos(fitted.model.new$comp.dist[k,j], fitted.model.new$params.fit[[k]][[j]], plot.series)
+  }
+  
+  pos.dens.series = (weighting) %*% t(dens.series)
+  pos.dens.series.new = (weighting.new) %*% t(dens.series.new)
+  
+  y.dens.vec = y.dens.vec + (pos.dens.series)
+  y.dens.vec.new = y.dens.vec.new + (pos.dens.series.new)
+}
+
+fm.dens.series = y.dens.vec/sample.size
+fm.dens.series.new = y.dens.vec.new/sample.size
+
+value = c(0:50)
+df.temp = data.frame(y = Y[,2], prob = rep(1, length(Y[,2])))
+df.1 = aggregate(df.temp[,"prob"], by = list(df.temp$y), FUN = "sum")
+df.1$x = df.1$x / sum(df.1$x) 
+sim = df.1$x[match(value, df.1$Group.1)]
+sim[is.na(sim)] = 0
+
+df.plot = data.frame(value, sim, fm.dens.series[1,], fm.dens.series.new[1,])
+
+mtx.plot = rbind(df.plot[,2], df.plot[,3], df.plot[,4])
+colnames(mtx.plot) = c(0:50)
+```
+
+```{r, eval=TRUE, echo=FALSE, fig.align="center", fig.width = 6, fig.asp = 1}
+par(oma=c(0,0,0,0), omi = c(0,0,0,0))
+
+barplot(height = mtx.plot, beside = TRUE, col = c("green", "red", "blue"),
+        main = "Marginal 1 of DemoData",
+        xlim = c(0, 600), ylim = c(0, 0.15),
+        xlab = "Y", ylab = "PMF",
+        width = 3, xpd = FALSE,
+        legend.text = c("Data", "Model 1", "Model 2"))
+
+```
+
+```{r, eval=TRUE, echo=FALSE}
+# Copied from the true model
+alpha = matrix( c(-0.5, 1, -0.05, 0.10, 1.25,
+                  0, 0, 0, 0, 0),
+                nrow = n.comp, byrow = TRUE)
+
+comp.dist = matrix(c("poisson", "ZI-gammacount",
+                     "lnorm", "invgauss"),
+                   nrow = dim.m, byrow = TRUE)
+
+zero.prob = matrix(c(0, 0.2,
+                     0, 0),
+                   nrow = dim.m, byrow = TRUE)
+
+params.list = list( list(c(6), c(30, 0.5)),
+                    list(c(4, 0.3), c(20, 20))
+                  )
+
+# Plotting
+plot.series = seq(0, 150, 0.25)
+
+y.dens.vec.true = rep(0, length(plot.series))
+y.dens.vec = rep(0, length(plot.series))
+y.dens.vec.new = rep(0, length(plot.series))
+
+k = 2 # plot dimension
+for(i in 1:sample.size)
+{
+  weighting.true = predict.class.prob(X[i,], alpha)
+  weighting = predict.class.prob(X[i,], fitted.model$alpha.fit)
+  weighting.new = predict.class.prob(X[i,], fitted.model.new$alpha.fit)
+  
+  dens.series.true = matrix(0, ncol = n.comp, nrow = length(plot.series))
+  dens.series = matrix(0, ncol = n.comp, nrow = length(plot.series))
+  dens.series.new = matrix(0, ncol = n.comp, nrow = length(plot.series))
+  
+  for(j in 1:n.comp)
+  {
+    dens.series.true[,j] = ind.dens.y.pos(comp.dist[k,j], params.list[[k]][[j]], plot.series)
+    dens.series[,j] = ind.dens.y.pos(fitted.model$comp.dist[k,j], fitted.model$params.fit[[k]][[j]], plot.series)
+    dens.series.new[,j] = ind.dens.y.pos(fitted.model.new$comp.dist[k,j], fitted.model.new$params.fit[[k]][[j]], plot.series)
+  }
+  
+  pos.dens.series.true = (weighting.true) %*% t(dens.series.true)
+  pos.dens.series = (weighting) %*% t(dens.series)
+  pos.dens.series.new = (weighting.new) %*% t(dens.series.new)
+  
+  y.dens.vec.true = y.dens.vec.true + (pos.dens.series.true)
+  y.dens.vec = y.dens.vec + (pos.dens.series)
+  y.dens.vec.new = y.dens.vec.new + (pos.dens.series.new)
+}
+
+fm.dens.series.true = y.dens.vec.true/sample.size
+fm.dens.series = y.dens.vec/sample.size
+fm.dens.series.new = y.dens.vec.new/sample.size
+```
+
+```{r, eval=TRUE, echo=FALSE, fig.align="center", fig.width = 6, fig.asp = 1}
+hist(Y[,6], breaks = 200, xlim = c(0, 100), ylim = c(0, 0.05), probability = TRUE, xlab = "Y", main = "Marginal 2 of DemoData")
+lines(x = plot.series, y = fm.dens.series.true, col = "forestgreen", lwd = 2)
+lines(x = plot.series, y = fm.dens.series, col = "red", lwd = 2)
+lines(x = plot.series, y = fm.dens.series.new, col = "blue", lwd = 2)
+legend("topright", pch = c(19, 19), col = c("forestgreen", "red", "blue"), legend = c("True", "Model 1", "Model 2"))
+
+```
+
+We can also obtain the QQ plot of the fitted models against the true model. It is in theory possible to calculate the exact cumulative distribution function (CDF) of the fitted distribution at selected points, but it may be quite computationally intensive when the sample size is large, as it involves averaging the individually fitted distributions over all observations. 
+
+For simplicity, we simulate from the fitted distribution and make the plots. The error may be controlled by choosing a relatively large sample size of simulation.
+
+```{r, eval=TRUE, echo=FALSE}
+# Use simulation to make QQ and PP plot
+set.seed(7777)
+sim.size = 10000
+
+model.sim = LRMoE::dataset.simulator(X, fitted.model$alpha.fit, fitted.model$comp.dist, 
+                      fitted.model$zero.fit, fitted.model$params.fit) 
+
+model.sim.new = LRMoE::dataset.simulator(X, fitted.model.new$alpha.fit, fitted.model.new$comp.dist, 
+                      fitted.model.new$zero.fit, fitted.model.new$params.fit)
+```
+
+```{r, eval=TRUE, echo=FALSE, fig.align="center", fig.width = 6, fig.asp = 1}
+# QQ-plot, dimension 1
+QQ.model.1 = qqplot(Y[,2], model.sim[,1], plot.it = FALSE)
+QQ.model.new.1 = qqplot(Y[,2], model.sim.new[,1], plot.it = FALSE)
+plot(range(QQ.model.1$x, QQ.model.new.1$x), range(QQ.model.1$y, QQ.model.new.1$y), type = "n",
+     xlab = "Theoretical Quantile", ylab = "Fitted Quantiles", main = "Q-Q Plot, DemoData Dimension 1")
+points(QQ.model.new.1, pch = 2, col = "blue")
+points(QQ.model.1, pch = 1, col = "red")
+abline(a=-0.5,b=1,col="forestgreen", lwd = 2)
+legend("bottomright", pch = c(19, 1, 2), col = c("forestgreen", "red", "blue"), legend = c("True", "Model 1", "Model 2"))
+```
+
+```{r, eval=TRUE, echo=FALSE, fig.align="center", fig.width = 6, fig.asp = 1}
+# QQ-plot, dimension 2
+QQ.model.2 = qqplot(Y[,6], model.sim[,2], plot.it = FALSE)
+QQ.model.new.2 = qqplot(Y[,6], model.sim.new[,2], plot.it = FALSE)
+plot(range(QQ.model.2$x, QQ.model.new.2$x), range(QQ.model.2$y, QQ.model.new.2$y), type = "n",
+     xlab = "Theoretical Quantile", ylab = "Fitted Quantiles", main = "Q-Q Plot, DemoData Dimension 2")
+points(QQ.model.new.2, pch = 2, col = "blue")
+points(QQ.model.2, pch = 1, col = "red")
+abline(a=-0.5,b=1,col="forestgreen", lwd = 2)
+legend("bottomright", pch = c(19, 1, 2), col = c("forestgreen", "red", "blue"), legend = c("True", "Model 1", "Model 2"))
+
+```
