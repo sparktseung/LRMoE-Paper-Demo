@@ -3,9 +3,7 @@ title: "LRMoE DemoData Fitting"
 author: "Spark Tseung"
 date: "March 2, 2020"
 output: 
-  pdf_document:
-    fig_caption: yes 
-    extra_dependencies: ["float"]
+  pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -319,9 +317,11 @@ legend("topright", pch = c(19, 19), col = c("forestgreen", "red", "blue"), legen
 
 ```
 
-We can also obtain the QQ plot of the fitted models against the true model. It is in theory possible to calculate the exact cumulative distribution function (CDF) of the fitted distribution at selected points, but it may be quite computationally intensive when the sample size is large, as it involves averaging the individually fitted distributions over all observations. 
+We can also obtain the QQ plot of the fitted models against the true model. For the fitted models, the distribution of the response variable for the population is a mixture of $n$ policyholder's individual distribution with weight $1/n$ assigned to each.
 
-For simplicity, we simulate from the fitted distribution and make the plots. The error may be controlled by choosing a relatively large sample size of simulation.
+It is straightforward to calculate the exact cumulative distribution function (CDF) of the fitted distribution for the population at selected points, but it may be quite computationally intensive and unstable to invert it to obtain the quantiles when the sample size is large.
+
+For simplicity, we simulate from the fitted distribution and make the plots. Note that different random seeds may produce slightly different plots, and a larger simulation size may make the plots more stable.
 
 ```{r, eval=TRUE, echo=FALSE}
 # Use simulation to make QQ and PP plot
