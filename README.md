@@ -13,6 +13,7 @@ This repository contains all demonstration code and results in the LRMoE paper. 
 
 | Repo Directory        	| Paper Section 	| Description                                      	|
 |:---------------------:	|:-------------:	|:------------------------------------------------:	|
+| 0-LRMoEPaper           	|                	| Contains the LRMoE paper                        	|
 | 1-DemoDataGeneration  	| 3             	| Generating `DemoData` in the package             	|
 | 2-DemoDataFitting     	| 3             	| Fitting LRMoE to `DemoData`                      	|
 | 3-RealDataPreliminary 	| 4.1, 4.2      	| Preliminary analysis of French auto data         	|
