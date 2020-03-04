@@ -81,7 +81,7 @@ predict.limit(limit = 100000, X[c(1, 33, 96),],
 
 ```
 
-At a portfolio level, we can simulate the distribution of the aggregate loss, which can be useful for setting the insurer's reserve, as well as allocated back to policyholders as a loaded premium. The simulation has been done with the `dataset.simulator` function in a separate file. (*Note: Run in parallel of 10 processes, the simulation of 5000 scenarios takes about 3 hours.*)
+At a portfolio level, we can simulate the distribution of the aggregate loss, which can be useful for setting the insurer's reserve, as well as allocated back to policyholders as a loaded premium. The full simulation has been done with the `dataset.simulator` function in a separate file. (*Note: Run in parallel of 10 processes, the simulation of 5000 scenarios takes about 3 hours. This is due to the large sample size (413,169) of the dataset.*)
 
 ```{r}
 # Load simulated aggregated loss
@@ -275,6 +275,8 @@ Y.pos = Y[which(Y[,2]>0),2]
 sim.Y.pos = model.sim[which(model.sim[,1]>0),1]
 ```
 
+\pagebreak
+
 ```{r, fig.align="center", fig.width = 6, fig.asp = 1}
 # Use standard R functions for plotting histograms (all data points)
 hist(log(Y.pos), breaks = 100, xlim = c(2, 12), probability = TRUE,
@@ -316,6 +318,95 @@ qqplot(Y[,2], model.sim,
        xlab = "Theoretical Quantile", ylab = "Fitted Quantiles", main = "Q-Q Plot")
 abline(a=0,b=1,col="red", lwd = 2)
 ```
+
+
+\pagebreak
+
+## Covariate Influence
+
+The `LRMoE` package provides two functions `covinf.discrete` and `covinf.continuous`, which investigates the marginal influence of a particular covariate on the response variable. For illustration, we use only the first 100 rows of data and a limited range of continuous covariates. The result on the entire dataset has been placed in a separate folder.
+
+```{r}
+X.small = X[1:100,]
+head(X.small, 5)
+```
+
+\pagebreak
+
+**Brand**: The covariate `Brand` is discrete, and its influence on the claim amount can be calculated as follows.
+
+```{r}
+df.brand = covinf.discrete(X.small,
+                idx = c(15:20), 
+                  # Column indices of Brand, Intercept is automatically included
+                response = c("Mean", "VAR990", "CTE990"), 
+                  # Focus on these metrics of the response
+                dim = 1, 
+                  # Claim amount is the 1st dimension of response
+                model.fit$alpha.fit, model.fit$comp.dist, 
+                model.fit$zero.fit, model.fit$params.fit # Model
+                )
+
+# Inspect the result
+head(df.brand)
+```
+
+The result can be visualized using `reshape2` and `ggplot2`.
+```{r, fig.align="center", fig.width = 6, fig.asp = 0.33}
+library(reshape2)
+library(ggplot2)
+
+BrandInf.plot = melt(data = data.frame(Brand = c("F", "JK", "MCB", "OGF", 
+                                                 "Other", "RNC", "VAS"), 
+                                       df.brand), 
+                     id.vars = c(1), measure.vars = c(2:4))
+
+ggplot(BrandInf.plot, aes(x = Brand, y = (value), color = variable, group = variable)) +
+  geom_point(size = 2, show.legend = FALSE) +
+  geom_line(size = 1, show.legend = FALSE) +
+  facet_wrap(.~ variable, scales = "free", ncol = 5) +
+  xlab("") +
+  ylab("") + 
+  ggtitle("Covariate Influence: Brand") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+\pagebreak
+
+**Car Age**: The covariate `CarAge` is continuous, and its influence on the claim amount can be calculated as follows.
+
+```{r}
+df.CarAge = covinf.continuous(X.small, 
+                idx = 2, 
+                  # Column index of CarAge
+                eval.seq = seq(from = 0, to = 20, by = 1), 
+                  # Consider CarAge = 0, 1, 2, ..., 20
+                response = c("Mean", "VAR990", "CTE990"), 
+                  # Focus on these metrics of the response
+                dim = 1, 
+                  # Claim amount is the 1st dimension of response
+                model.fit$alpha.fit, model.fit$comp.dist, 
+                model.fit$zero.fit, model.fit$params.fit # Model
+                )
+
+# Inspect the result
+head(df.CarAge)
+```
+
+```{r, fig.align="center", fig.width = 6, fig.asp = 0.33}
+CarAgeInf.plot = melt(data = data.frame(CarAge = c(0:20), df.CarAge), 
+                      id.vars = c(1), measure.vars = c(2:4))
+
+ggplot(CarAgeInf.plot, aes(x = CarAge, y = (value), color = variable)) + 
+  geom_line(size = 1, show.legend = FALSE) +
+  facet_wrap(.~ variable, scales = "free", ncol = 5) +
+  xlab("") +
+  ylab("") + 
+  ggtitle("Covariate Influence: Car Age") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
 
 
 
