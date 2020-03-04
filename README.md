@@ -23,6 +23,8 @@ This repository contains all demonstration code and results in the LRMoE paper. 
 
 - The plots in [2-DemoDataFitting](https://github.com/sparktseung/LRMoE-Paper-Demo/tree/master/2-DemoDataFitting) are slightly different from the ones in the paper submitted, due to a change of simulation machanisms in `LRMoE::dataset.simulator`. The plots in the paper will be updated in subsequent revisions.
 
+- Some code lines in the `.Rmd` files are slightly different from those in the paper submitted, mainly due to modification of the package functions and interface. These will also be updated in subsequent revisions.
+
 - Due to the size of the French auto dataset (413,169 rows), the average run time for fitting one LRMoE model is around 5 hours. Hence, the `.Rmd` files do not contain any code to actually fit the model, and we have separately uploaded the fitting code and results (see [5-RealDataResult](https://github.com/sparktseung/LRMoE-Paper-Demo/tree/master/5-RealDataResult)).
 
 - For the same reason of runtime, the calculation of covariate influence in [5-RealDataResult](https://github.com/sparktseung/LRMoE-Paper-Demo/tree/master/5-RealDataResult) / [RealDataResult.pdf](https://github.com/sparktseung/LRMoE-Paper-Demo/blob/master/5-RealDataResult/RealDataResult.pdf) is also done on a subset of data, and the results on the entire dataset are also uploaded separately.
