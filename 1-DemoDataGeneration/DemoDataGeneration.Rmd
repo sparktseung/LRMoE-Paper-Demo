@@ -1,7 +1,7 @@
 ---
 title: "LRMoE DemoData Generation"
 author: "Spark Tseung"
-date: "March 2, 2020"
+date: "Aug 9, 2020"
 output: pdf_document
 ---
 
@@ -13,7 +13,7 @@ library(matrixStats)
 ```
 ## Introduction
 
-This document contains the data generation process for the dataset `DemoData` included in the `LRMoE` package. This also serves as an example of using the `dataset.simulator` function included in the package.
+This document contains the data generation process for the dataset `DemoData` included in the `LRMoE` package. This also serves as an example of using the `SimYSet` function included in the package.
 
 
 ## Data Simulation
@@ -69,7 +69,7 @@ params.list = list( list(c(6), c(30, 0.5)),
 The `LRMoE` package includes a simulator. Given the covariates and parameters defined above, we can directly simulate a dataset.
 
 ```{r, eval=TRUE}
-Y.complete = LRMoE::dataset.simulator(X, alpha, comp.dist, zero.prob, params.list)
+Y.complete = LRMoE::SimYSet(X, alpha, comp.dist, zero.prob, params.list)
 ```
 
 The simulated values are plotted as follows. For each dimension of `Y`, the histogram is relatively well separated as two components. This is more or less done on purpose to demonstrate that the fitting procedure can identify the *true* model when it is known. In practice, we are usually less concerned of the underlying data generating distribution, as long as the LRMoE model provides a reasonable fit of data.
