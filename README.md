@@ -1,3 +1,7 @@
+---
+title: Demo
+---
+
 This is a demo page.
 
 1. [Generation of DemoData](./1-DemoDataGeneration/DemoDataGeneration.html)
