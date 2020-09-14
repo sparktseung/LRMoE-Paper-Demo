@@ -3,7 +3,7 @@ title: "LRMoE DemoData Generation"
 author: "Spark Tseung"
 date: "Sept 14, 2020"
 output: 
-  html_document
+  md_document
 ---
 
 ```{r setup, include=FALSE}
