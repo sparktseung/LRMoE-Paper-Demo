@@ -1,6 +1,7 @@
 ---
 layout: default
-title: Work
+title: LRMoE Demonstration
+description: A quick demo of the LRMoE Package in R
 ---
 
 This is a demo page.
