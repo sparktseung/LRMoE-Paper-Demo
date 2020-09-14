@@ -1,8 +1,9 @@
 ---
 title: "LRMoE DemoData Generation"
 author: "Spark Tseung"
-date: "Aug 9, 2020"
-output: pdf_document
+date: "Sept 14, 2020"
+output: 
+  html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -13,7 +14,7 @@ library(matrixStats)
 ```
 ## Introduction
 
-This document contains the data generation process for the dataset `DemoData` included in the `LRMoE` package. This also serves as an example of using the `SimYSet` function included in the package.
+This document contains the data generation process for the dataset `LRMoEDemoData` included in the `LRMoE` package. This also serves as an example of using the `SimYSet` function included in the package.
 
 
 ## Data Simulation
@@ -176,7 +177,7 @@ Y = matrix(c(rep(0,10000), Y.complete[,1], Y.complete[,1], rep(Inf,10000),
                   c("tl.1", "yl.1", "yu.1", "tu.1", 
                     "tl.2", "yl.2", "yu.2", "tu.2")))
 
-save(X, Y, X.obs, Y.obs, file = "DemoData.RData")
+save(X, Y, X.obs, Y.obs, file = "LRMoEDemoData.RData")
 
 ```
 
