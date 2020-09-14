@@ -1,6 +1,4 @@
----
-title: LRMoE - Generating Demo Data
----
+# LRMoE - Generating Demo Data
 
 Introduction
 ------------
