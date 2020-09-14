@@ -1,5 +1,6 @@
 ---
-title: Demo
+layout: default
+title: Work
 ---
 
 This is a demo page.
