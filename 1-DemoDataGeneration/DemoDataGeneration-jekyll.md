@@ -2,8 +2,6 @@
 
 **Author**: [Spark Tseung](https://sparktseung.com)
 
-**Source Code**: [github](https://github.com/sparktseung/LRMoE-Paper-Demo) 
-
 **Last Modified**: Sept 14, 2020
 
 Introduction
