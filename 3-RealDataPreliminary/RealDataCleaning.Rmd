@@ -3,7 +3,7 @@ title: "Preliminary Analysis - French Auto Insurance"
 author: "Spark Tseung"
 date: "Sept 15, 2020"
 output: 
-    html_document
+    md_document
 ---
 
 ```{r setup, include=FALSE}
@@ -277,12 +277,13 @@ summary(didx.carage)
 For `DriverAge`, we take a similar approach as in `CarAge`.
 
 ```{r, cache=TRUE, message=F}
+# Large values
 freMTPLfreq$DriverAge[freMTPLfreq$DriverAge>90]
 ```
 
 ```{r, cache=TRUE, message=F, echo=F}
 hist(freMTPLfreq$DriverAge[freMTPLfreq$DriverAge>90],
-     main = "Histogram of DriverAge>60", xlab = "DriverAge")
+     main = "Histogram of DriverAge>90", xlab = "DriverAge")
 ```
 
 Based on the data summary and histogram plot, it is reasonable to assume (without further information available) that `99` is used for either missing or error data entries, or just any age larger than or equal to 99. We will also ignore these data points when conducting further analysis. 
@@ -405,7 +406,7 @@ ggplot(freMTPLfreq, aes(x = as.factor(ClaimNb), y = Density)) +
     theme_tufte()
 ```
 
-Based on the previous analysis, we only need to delete invalid data or outliers based on `Exposure`, `CarAge` and `DriverAge`. In total, there are 1324 data points deleted. Data cleanng based for `ClaimAmount` is deferred to the next section.
+Based on the previous analysis, we only need to delete invalid data or outliers based on `Exposure`, `CarAge` and `DriverAge`. In total, there are 1324 data points deleted. Data cleaning based for `ClaimAmount` is deferred to the next section.
 
 ```{r, cache=TRUE, message=F, include=F}
 # Indices to delete

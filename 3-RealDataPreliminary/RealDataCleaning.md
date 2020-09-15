@@ -333,6 +333,7 @@ analysis.
 
 For `DriverAge`, we take a similar approach as in `CarAge`.
 
+    # Large values
     freMTPLfreq$DriverAge[freMTPLfreq$DriverAge>90]
 
     ##   [1] 95 93 91 99 91 99 99 95 91 99 95 99 99 99 99 99 99 99 99 99 99 99 99 99 99
@@ -528,7 +529,7 @@ illustrated by the following violin plot.
 
 Based on the previous analysis, we only need to delete invalid data or
 outliers based on `Exposure`, `CarAge` and `DriverAge`. In total, there
-are 1324 data points deleted. Data cleanng based for `ClaimAmount` is
+are 1324 data points deleted. Data cleaning based for `ClaimAmount` is
 deferred to the next section.
 
 Preliminary Analysis of Claim Amount
