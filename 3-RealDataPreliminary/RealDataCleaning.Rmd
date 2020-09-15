@@ -286,7 +286,7 @@ hist(freMTPLfreq$DriverAge[freMTPLfreq$DriverAge>90],
      main = "Histogram of DriverAge>90", xlab = "DriverAge")
 ```
 
-Based on the data summary and histogram plot, it is reasonable to assume (without further information available) that `99` is used for either missing or error data entries, or just any age larger than or equal to 99. We will also ignore these data points when conducting further analysis. 
+Based on the data summary and histogram plot, it is reasonable to assume (without further information available) that `99` is used for either missing or error data entries, or just any age larger than or equal to `99`. We will also ignore these data points when conducting further analysis. 
 
 ```{r, cache=TRUE, message=F}
 # Data to ignore due to ambiguous DriverAge: 59 entries.

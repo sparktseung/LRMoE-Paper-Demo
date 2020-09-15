@@ -361,7 +361,7 @@ For `DriverAge`, we take a similar approach as in `CarAge`.
 Based on the data summary and histogram plot, it is reasonable to assume
 (without further information available) that `99` is used for either
 missing or error data entries, or just any age larger than or equal to
-99. We will also ignore these data points when conducting further
+`99`. We will also ignore these data points when conducting further
 analysis.
 
     # Data to ignore due to ambiguous DriverAge: 59 entries.
