@@ -1,0 +1,590 @@
+---
+title: "Preliminary Analysis - French Auto Insurance"
+author: "Spark Tseung"
+date: "Sept 15, 2020"
+output: 
+    html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=4.5, fig.height=4.5, fig.align = "center") 
+library(ggplot2)
+library(ggthemes)
+library(Hmisc)
+library(gplots)
+library(EnvStats)
+```
+
+## Introduction
+
+In this document, we will perform some preliminary analysis and data cleaning of the French Motor Third-Party Liability dataset (`freMTPLfreq` and `freMTPLsev` in the `CASdatasets` package). The dataset can be loaded using the following code.
+
+```{r, cache=TRUE, message=F}
+library(CASdatasets)
+data(freMTPLfreq, freMTPLsev)
+```
+
+## Data Cleaning
+
+The `freMTPLfreq` contains a number of policy features (covariates) and the number of claims filed by each policy.
+
+```{r, cache=TRUE, message=F}
+head(freMTPLfreq)
+summary(freMTPLfreq)
+```
+
+### Claim Number
+
+The response `ClaimNb` is significantly zero-inflated, and very few policyholders have more than one claim.
+
+```{r, cache=TRUE, message=F}
+summary(freMTPLfreq$ClaimNb)
+table(freMTPLfreq$ClaimNb)
+```
+
+Let's see which policyholders have 4 claims and their claim amounts. There doesn't seem to be any discernible pattern.
+
+```{r, cache=TRUE, message=F}
+# Which policies have 4 claims?
+four.idx = which(freMTPLfreq$ClaimNb==4)
+# freMTPLfreq[four.idx,]
+# What are the claim amounts?
+four.id = freMTPLfreq[four.idx,1]
+df4 = freMTPLsev[freMTPLsev[,1] %in% four.id,]
+df4
+```
+
+```{r, cache=TRUE, message=F, echo=F}
+# Plot the claim amounts
+df4 = df4[order(df4$PolicyID, df4$ClaimAmount),]
+df4$No = rep(c(1, 2, 3, 4), nrow(df4)/4)
+df4$PolicyID = factor(df4$PolicyID)
+ggplot(df4, aes(fill=No, y=ClaimAmount, x=PolicyID)) + 
+    geom_bar(position="stack", stat="identity", show.legend = FALSE) +
+    ggtitle("Claim Amounts for Policyholders with 4 claims") +
+    xlab("") + 
+    theme_tufte() +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())
+```
+
+Similarly, let's look at policyholders with 3 claims. There is no discernible pattern.
+
+```{r, cache=TRUE, message=F, echo=F}
+# Which policies have 3 claims?
+three.idx = which(freMTPLfreq$ClaimNb==3)
+# freMTPLfreq[three.idx,]
+# What are the claim amounts?
+three.id = freMTPLfreq[three.idx,1]
+df3 = freMTPLsev[freMTPLsev[,1] %in% three.id,]
+# Plot the claim amounts
+df3 = df3[order(df3$PolicyID, df3$ClaimAmount),]
+df3$No = rep(c(1, 2, 3), nrow(df3)/3)
+df3$PolicyID = factor(df3$PolicyID)
+ggplot(df3, aes(fill=No, y=ClaimAmount, x=PolicyID)) + 
+    geom_bar(position="stack", stat="identity", show.legend = FALSE) +
+    ggtitle("Claim Amounts for Policyholders with 3 claims") +
+    xlab("") + 
+    theme_tufte() +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())
+```
+
+Now those with 2 claims.
+
+```{r, cache=TRUE, message=F, echo=F}
+# Which policies have 2 claims?
+two.idx = which(freMTPLfreq$ClaimNb==2)
+# freMTPLfreq[two.idx,]
+# What are the claim amounts?
+two.id = freMTPLfreq[two.idx,1]
+df2 = freMTPLsev[freMTPLsev[,1] %in% two.id,]
+# Plot the claim amounts
+df2 = df2[order(df2$PolicyID, df2$ClaimAmount),]
+df2$No = rep(c(1, 2), nrow(df2)/2)
+df2$PolicyID = factor(df2$PolicyID)
+ggplot(df2, aes(fill=No, y=ClaimAmount, x=PolicyID)) + 
+    geom_bar(position="stack", stat="identity", show.legend = FALSE) +
+    ggtitle("Claim Amounts for Policyholders with 2 claims") +
+    xlab("") + 
+    theme_tufte() +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())
+```
+
+There are some policyholder with extremely large claims. Let's remove the highest 10 and then plot again. There is no discernible pattern.
+
+```{r, cache=TRUE, message=F, echo=F}
+ggplot(df2[df2$ClaimAmount<sort(unique(df2$ClaimAmount), decreasing = TRUE)[10],], 
+       aes(fill=No, y=ClaimAmount, x=PolicyID)) + 
+    geom_bar(position="stack", stat="identity", show.legend = FALSE) +
+    ggtitle("Claim Amounts for Policyholders with 2 claims (Except Top 10)") +
+    xlab("") + 
+    theme_tufte() +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())
+```
+
+We will not separately plot policyholders with only one claim (see also the next subsection on Claim Amount).
+
+### Claim Amount
+
+The `freMTPLsev` contains the `PolicyID` and `ClaimAmount` for those who have filed claims. Some summary statistics and a histogram are shown below. It is multi-modal, over-dispersed, right-skewed and heavy-tailed.
+
+```{r, cache=TRUE, message=F}
+# Summary Staitistics
+summary(freMTPLsev$ClaimAmount)
+mean(freMTPLsev$ClaimAmount)
+sd(freMTPLsev$ClaimAmount)
+skewness(freMTPLsev$ClaimAmount)
+kurtosis(freMTPLsev$ClaimAmount)
+```
+
+```{r, cache=TRUE, message=F, echo=F}
+# A histogram plot
+hist(freMTPLsev$ClaimAmount, breaks = 10000, xlim = c(1, 10000), main = "Histogram of Claim Amount", xlab = "")
+```
+
+Clearly, there are some very large outliers of `ClaimAmount`. We will ignore some of these data points.
+
+```{r, cache=TRUE, message=F}
+# Some Quantiles
+quantile(freMTPLsev$ClaimAmount, c(0.90, 0.95, 0.99, 0.995, 0.9975, 0.999, 0.9999))
+# Beyond 2 SD away from mean
+mean(freMTPLsev$ClaimAmount) + 2*sd(freMTPLsev$ClaimAmount)
+```
+
+```{r, cache=TRUE, message=F}
+# Extremely large claims
+freMTPLsev$ClaimAmount[freMTPLsev$ClaimAmount>70000]
+# We will delete claim amounts > 100000
+sev.cutoff = 100000
+```
+
+### Exposure
+
+The variable `Exposure` in `freMTPLfreq` contains the exposure (i.e. how long the policy covers). Most are one-year or less, with a few policies longer than that but less than two years.
+
+```{r, cache=TRUE, message=F}
+# Summary Staitistics
+summary(freMTPLfreq$Exposure)
+```
+
+```{r, cache=TRUE, message=F, echo=F}
+# A histogram plot
+hist(freMTPLfreq$Exposure, breaks = 100, xlim = c(0, 2), main = "Histogram of Exposure", xlab = "")
+```
+
+One may expect that, the longer the policy exposure, the more likely that a claim will be made (all others held constant). However, the following plot does not support this, as those with 3 or 4 claims can also have a quite short exposure. Meanwhile, a number of policies with zero claim tend to have shorter exposures.
+
+```{r, cache=TRUE, message=F, echo=F}
+ggplot(freMTPLfreq, aes(x = as.factor(ClaimNb), y = Exposure)) +
+    geom_violin() +
+    stat_summary(fun.data=mean_sdl, 
+                 geom="pointrange", color="red") +
+    xlab("Claim Number") +
+    ggtitle("Violin Plot of Exposure against Claim Number") +
+    theme_tufte()
+```
+
+We will also exclude policies with `Exposure > 1` from our analysis.
+```{r, cache=TRUE, message=F}
+exposure.cutoff = 1
+# Exposure deleted
+freMTPLfreq$Exposure[freMTPLfreq$Exposure>exposure.cutoff]
+
+# Data to ignore due to Exposure > 1: 421 entries.
+didx.exposure = (freMTPLfreq$Exposure>1)
+summary(didx.exposure)
+
+```
+
+### Power
+
+`Power` is a categorical variable describing the power of a car. There is not any data issue. The majority of policies have car power of type `d` to `j`. A simple chi-squared test on contingency table also suggests that `Power` and `ClaimNb` are **not** independent: power types `e`, `f`, `m` and `n` tend to have more claims.
+
+```{r, cache=TRUE, message=F, warning=F}
+summary(freMTPLfreq$Power)
+PNbtable = table(freMTPLfreq$Power, freMTPLfreq$ClaimNb)
+PNbtable
+chisq = chisq.test(PNbtable)
+chisq
+
+# Probability of making a claim
+1-t(round(sweep(PNbtable, 1, rowSums(PNbtable), FUN = "/"),4)[,1])
+```
+
+```{r, cache=TRUE, message=F, echo=F, fig.width=10, fig.height=6}
+# Visualization
+# balloonplot(t(PNbtable[,-1]), main ="Claim Number (>0) against Power", xlab ="ClaimNb", ylab="Power",
+#             label = FALSE, show.margins = FALSE)
+
+balloonplot(t(round(sweep(PNbtable, 1, rowSums(PNbtable), FUN = "/"),4)[,-1]), main ="Claim Probability (>0) against Power", xlab ="ClaimNb", ylab="Power",
+            label = T, show.margins = FALSE)
+```
+
+```{r, cache=TRUE, message=F, echo=F}
+# ggplot(freMTPLfreq[freMTPLfreq$ClaimNb==0,], aes(x = ClaimNb, color = Power, fill = Power)) +
+#     geom_histogram(position = "dodge") +
+#     xlab("") +
+#     ggtitle("Policies with Zero Claim, by Car Power") +
+#     theme_tufte() +
+#      theme(axis.title.x=element_blank(),
+#           axis.text.x=element_blank(),
+#           axis.ticks.x=element_blank())
+```
+
+
+### Car Age
+
+For `CarAge`, the extremely large values seem quite suspicious.
+
+```{r, cache=TRUE, message=F}
+# Check the large values in CarAge
+freMTPLfreq$CarAge[freMTPLfreq$CarAge>90]
+```
+
+```{r, cache=TRUE, message=F, echo=F}
+# A histogram plot
+hist(freMTPLfreq$CarAge[freMTPLfreq$CarAge>60], 
+     main = "Histogram of CarAge>60", xlab = "CarAge")
+```
+
+Based on the data summary and histogram plot, it is reasonable to assume (without further information available) that `99` and `100` are used for either missing or error data entries. There are also some extremely old cars. We will ignore all these data points when conducting further analysis.
+
+```{r, cache=TRUE, message=F}
+# Some Quantiles
+quantile(freMTPLfreq$CarAge, c(0.90, 0.95, 0.99, 0.995, 0.9975, 0.999, 0.9999))
+# Beyond 2 SD away from mean
+mean(freMTPLfreq$CarAge) + 2*sd(freMTPLfreq$CarAge)
+# We will delete CarAge > 30
+carage.cutoff = 30
+```
+
+```{r, cache=TRUE, message=F}
+# Data to ignore due to invalid CarAge: 846 entries.
+didx.carage = (freMTPLfreq$CarAge>carage.cutoff)
+summary(didx.carage)
+```
+
+### Driver Age 
+
+For `DriverAge`, we take a similar approach as in `CarAge`.
+
+```{r, cache=TRUE, message=F}
+freMTPLfreq$DriverAge[freMTPLfreq$DriverAge>90]
+```
+
+```{r, cache=TRUE, message=F, echo=F}
+hist(freMTPLfreq$DriverAge[freMTPLfreq$DriverAge>90],
+     main = "Histogram of DriverAge>60", xlab = "DriverAge")
+```
+
+Based on the data summary and histogram plot, it is reasonable to assume (without further information available) that `99` is used for either missing or error data entries, or just any age larger than or equal to 99. We will also ignore these data points when conducting further analysis. 
+
+```{r, cache=TRUE, message=F}
+# Data to ignore due to ambiguous DriverAge: 59 entries.
+didx.driverage = (freMTPLfreq$DriverAge==99)
+summary(didx.driverage)
+```
+
+### Brand
+
+`Brand` is also a categorical variable, and there is no invalid data point. The analysis is similar to `Power`. `Brand` is also not independent of `ClaimNb`: It appears that `General Motors or Ford`, `Volkswagen, Audi, Skoda or Seat` and `Mercedes, Chrysler or BMW Opel` are riskier than other brands.
+
+```{r, cache=TRUE, message=F, warning=F}
+summary(freMTPLfreq$Brand)
+BNbtable = table(freMTPLfreq$Brand, freMTPLfreq$ClaimNb)
+BNbtable
+chisq = chisq.test(BNbtable)
+chisq
+
+# Probability of making a claim
+1-t(round(sweep(BNbtable, 1, rowSums(BNbtable), FUN = "/"),4)[,1])
+```
+
+```{r, cache=TRUE, message=F, echo=F, fig.width=10, fig.height=6}
+# Visualization
+# balloonplot(t(BNbtable[,-1]), main ="Claim Number (>0) against Brand", xlab ="ClaimNb", ylab="Brand",
+#             label = FALSE, show.margins = FALSE)
+
+balloonplot(t(round(sweep(BNbtable, 1, rowSums(BNbtable), FUN = "/"),4)[,-1]), main ="Claim Probability (>0) against Brand", xlab ="ClaimNb", ylab="Brand",
+            label = T, show.margins = FALSE)
+```
+
+
+### Gas
+
+`Gas` is a categorical with only two levels: `Regular` and `Diesel`. All data entries are valid. There are roughly the same number of cars for each gas type, but `Diesel` cars tend to have a higher probability of claims.
+
+```{r, cache=TRUE, message=F, warning=F}
+summary(freMTPLfreq$Gas)
+GNbtable = table(freMTPLfreq$Gas, freMTPLfreq$ClaimNb)
+GNbtable
+chisq = chisq.test(GNbtable)
+chisq
+
+# Probability of making a claim
+1-t(round(sweep(GNbtable, 1, rowSums(GNbtable), FUN = "/"),4)[,1])
+```
+
+```{r, cache=TRUE, message=F, echo=F, fig.width=10, fig.height=6}
+# Visualization
+# balloonplot(t(GNbtable[,-1]), main ="Claim Number (>0) against Gas", xlab ="ClaimNb", ylab="Gas",
+#             label = FALSE, show.margins = FALSE)
+
+balloonplot(t(round(sweep(GNbtable, 1, rowSums(GNbtable), FUN = "/"),4)[,-1]), main ="Claim Probability (>0) against Gas", xlab ="ClaimNb", ylab="Region",
+            label = T, show.margins = FALSE)
+```
+
+### Region
+
+There are a number of regions where the policies are issued. All data entries are valid. Regions with a higher probability of claims are `Bretagne`,`Limousin ` and `Poitou-Charentes`.
+
+```{r, cache=TRUE, message=F, warning=F}
+summary(freMTPLfreq$Region)
+RNbtable = table(freMTPLfreq$Region, freMTPLfreq$ClaimNb)
+RNbtable
+chisq = chisq.test(RNbtable)
+chisq
+
+# Probability of making a claim
+1-t(round(sweep(RNbtable, 1, rowSums(RNbtable), FUN = "/"),4)[,1])
+```
+
+```{r, cache=TRUE, message=F, echo=F, fig.width=10, fig.height=6}
+# Visualization
+# balloonplot(t(RNbtable[,-1]), main ="Claim Number (>0) against Region", xlab ="ClaimNb", ylab="Region",
+#             label = FALSE, show.margins = FALSE)
+
+balloonplot(t(round(sweep(RNbtable, 1, rowSums(RNbtable), FUN = "/"),4)[,-1]), main ="Claim Probability (>0) against Region", xlab ="ClaimNb", ylab="Region",
+            label = T, show.margins = FALSE)
+```
+
+
+### Density
+
+The variable `Density` for population density is continuous. There is no invalid data point. Also, it seems that `Density` has a finer resolution than `Region`.
+
+```{r, cache=TRUE, message=F}
+# Summary Staitistics
+summary(freMTPLfreq$Density)
+```
+
+```{r, cache=TRUE, message=F, echo=F}
+# A histogram plot
+hist(freMTPLfreq$Density, breaks = 1000, xlim = c(0, 5000), main = "Histogram of Density", xlab = "")
+```
+
+```{r, cache=TRUE, message=F, echo=F, warning=F, fig.width=9, fig.height=8}
+ggplot(freMTPLfreq, aes(x = as.factor(Region), y = Density)) +
+    geom_violin() +
+    # stat_summary(fun.data=mean_sdl,
+    #              geom="pointrange", color="red") +
+    xlab("Region") +
+    ylim(0, 10000) +
+    ggtitle("Violin Plot of Density against Region") +
+    theme_tufte()
+```
+
+One may expect that, the higher the population density, the more likely that a claim will be made (all others held constant). This is somewhat illustrated by the following violin plot.
+
+```{r, cache=TRUE, message=F, echo=F, warning=F, fig.width=8, fig.height=8}
+ggplot(freMTPLfreq, aes(x = as.factor(ClaimNb), y = Density)) +
+    geom_violin() +
+    # stat_summary(fun.data=mean_sdl, 
+    #              geom="pointrange", color="red") +
+    xlab("Claim Number") +
+    ylim(0, 10000) +
+    ggtitle("Violin Plot of Density against Claim Number") +
+    theme_tufte()
+```
+
+Based on the previous analysis, we only need to delete invalid data or outliers based on `Exposure`, `CarAge` and `DriverAge`. In total, there are 1324 data points deleted. Data cleanng based for `ClaimAmount` is deferred to the next section.
+
+```{r, cache=TRUE, message=F, include=F}
+# Indices to delete
+# del.idx = as.logical(pmax(didx.exposure, didx.carage, didx.driverage))
+# table(didx.carage)
+# table(didx.driverage)
+# table(didx.exposure)
+# table(del.idx)
+# 
+# del.policy = freMTPLfreq$PolicyID[del.idx]
+```
+
+
+## Preliminary Analysis of Claim Amount
+
+Our primary interest is the response variable `ClaimAmount`. We first merge the dataframes `freMTPLfreq` and `freMTPLsev`, and then analyze the relationship between `ClaimAmount` and the policy covariates.
+
+```{r, cache=TRUE, message=F}
+# Merge two dataframes
+df = merge(x = freMTPLfreq, y = freMTPLsev, all = TRUE)
+# Zero claim amount is matched to NA: replace them by zero
+df$ClaimAmount[is.na(df$ClaimAmount)] = 0
+summary(df)
+nrow(df)
+
+# Also delete large claims
+# lc.idx = (df$ClaimAmount>sev.cutoff)
+# lc.policy = as.integer(df$PolicyID[lc.idx])
+
+# Delete invalid data
+# df = df[!(df$PolicyID %in% union(del.policy,lc.policy)),]
+df = df[!((df$CarAge > carage.cutoff) | (df$DriverAge > 98) | 
+          (df$Exposure > exposure.cutoff) | (df$ClaimAmount > sev.cutoff)),]
+
+# Check the merge is correct
+summary(df)
+nrow(df)
+```
+
+The summary and marginal histogram of `ClaimAmount` is given as follows.
+
+```{r, cache=TRUE, message=F}
+summary(df$ClaimAmount)
+```
+
+```{r, cache=TRUE, message=F, echo=F, warning=F}
+hist(df$ClaimAmount[df$ClaimAmount>0], breaks = 2000, xlim = c(0, 5000),
+     main = "Histogram of Positive Claim Amount", xlab = "")
+```
+
+### Claim Amount & Exposure
+
+There is not really a discernible pattern of `ClaimAmount` plotted against `Exposure`. Other than some outliers, the distributions of `ClaimAmount` given different values `Exposure` seem quite similar.
+
+```{r, cache=TRUE, message=F}
+cor(df$Exposure, df$ClaimAmount)
+```
+
+```{r, cache=TRUE, message=F, echo=F, warning=F, fig.width=9, fig.height=4.5}
+# plot(df$Exposure[df$ClaimAmount>0 &df$ClaimAmount<50000], df$ClaimAmount[df$ClaimAmount>0 & df$ClaimAmount<50000],
+#      xlab = "Exposure", ylab = "Claim Amount", main = "Positive Claim Amount & Exposure")
+
+ggplot(data = df[df$ClaimAmount>0 & df$ClaimAmount<5000,], mapping = aes(x = Exposure, y = ClaimAmount)) + 
+  geom_violin(mapping = aes(group = cut_width(Exposure, 0.2))) +
+    ggtitle("Posotive Claim Amounts & Exposure") +
+    xlab("") + 
+    theme_tufte() +
+    theme(axis.title.x=element_blank())
+```
+
+### Claim Amount & Power
+
+There might be some relationship between `ClaimAmount` and `Power`.
+
+```{r, cache=TRUE, message=F, echo=F, warning=F, fig.width=9, fig.height=4.5}
+ggplot(data = df[df$ClaimAmount>0 & df$ClaimAmount<5000,], mapping = aes(x = Power, y = ClaimAmount)) +
+    geom_violin() +
+    ggtitle("Posotive Claim Amounts & Power") +
+    xlab("Power") + 
+    theme_tufte()
+```
+
+### Claim Amount & Car Age
+
+There might be some relationship between `ClaimAmount` and `CarAge`.
+
+```{r, cache=TRUE, message=F}
+cor(df$CarAge, df$ClaimAmount)
+```
+
+```{r, cache=TRUE, message=F, echo=F, warning=F, fig.width=9, fig.height=4.5}
+# plot(df$CarAge[df$ClaimAmount>0 &df$ClaimAmount<5000], df$ClaimAmount[df$ClaimAmount>0 & df$ClaimAmount<5000],
+#   xlab = "CarAge", ylab = "Claim Amount", main = "Positive Claim Amount & CarAge")
+
+ggplot(data = df[df$ClaimAmount>0 & df$ClaimAmount<5000,], mapping = aes(x = CarAge, y = ClaimAmount)) + 
+  geom_violin(mapping = aes(group = cut_width(CarAge, 5))) +
+    ggtitle("Posotive Claim Amounts & Car Age") +
+    xlab("") + 
+    theme_tufte() +
+    theme(axis.title.x=element_blank())
+```
+
+### Claim Amount & Driver Age
+
+There might be some relationship between `ClaimAmount` and `DriverAge`.
+
+```{r, cache=TRUE, message=F}
+cor(df$DriverAge, df$ClaimAmount)
+```
+
+```{r, cache=TRUE, message=F, echo=F, warning=F, fig.width=9, fig.height=4.5}
+ggplot(data = df[df$ClaimAmount>0 & df$ClaimAmount<5000,], mapping = aes(x = DriverAge, y = ClaimAmount)) + 
+  geom_violin(mapping = aes(group = cut_width(DriverAge, 10))) +
+    ggtitle("Posotive Claim Amounts & Driver Age") +
+    xlab("") + 
+    theme_tufte() +
+    theme(axis.title.x=element_blank())
+```
+
+### Claim Amount & Brand
+
+There might be some relationship between `ClaimAmount` and `Brand`.
+
+```{r, cache=TRUE, message=F, echo=F, warning=F, fig.width=9, fig.height=4.5}
+ggplot(data = df[df$ClaimAmount>0 & df$ClaimAmount<5000,], mapping = aes(x = Brand, y = ClaimAmount)) +
+    geom_violin() +
+    ggtitle("Posotive Claim Amounts & Brand") +
+    xlab("Brand") + 
+    theme_tufte()
+```
+
+### Claim Amount & Gas
+
+The relationship between `ClaimAmount` and `Gas` is not quite clear.
+
+```{r, cache=TRUE, message=F, echo=F, warning=F, fig.width=9, fig.height=4.5}
+ggplot(data = df[df$ClaimAmount>0 & df$ClaimAmount<5000,], mapping = aes(x = Gas, y = ClaimAmount)) +
+    geom_violin() +
+    ggtitle("Posotive Claim Amounts & Gas") +
+    xlab("Gas") + 
+    theme_tufte()
+```
+
+### Claim Amount & Region
+
+There might be some relationship between `ClaimAmount` and `Region`.
+
+```{r, cache=TRUE, message=F, echo=F, warning=F, fig.width=9, fig.height=4.5}
+ggplot(data = df[df$ClaimAmount>0 & df$ClaimAmount<5000,], mapping = aes(x = Region, y = ClaimAmount)) +
+    geom_violin() +
+    ggtitle("Posotive Claim Amounts & Region") +
+    xlab("Region") + 
+    theme_tufte()
+```
+
+### Claim Amount & Density
+
+There might be some relationship between `ClaimAmount` and `Density`.
+
+```{r, cache=TRUE, message=F}
+cor(df$Density, df$ClaimAmount)
+```
+
+```{r, cache=TRUE, message=F, echo=F, warning=F, fig.width=9, fig.height=4.5}
+# plot(df$Density[df$ClaimAmount>0 &df$ClaimAmount<5000], df$ClaimAmount[df$ClaimAmount>0 & df$ClaimAmount<5000],
+#   xlab = "Density", ylab = "Claim Amount", main = "Positive Claim Amount & Density")
+
+ggplot(data = df[df$ClaimAmount>0 & df$ClaimAmount<3000 & df$Density<3000,], mapping = aes(x = Density, y = ClaimAmount)) + 
+  geom_violin(mapping = aes(group = cut_width(Density, 500))) +
+    ggtitle("Posotive Claim Amounts & Density") +
+    xlab("") + 
+    theme_tufte() +
+    theme(axis.title.x=element_blank())
+```
+
+
+## Saving Data
+
+We will save the cleaned datasets for further analysis.
+```{r, cache=TRUE, message=F, eval=F}
+save(df, file = "freMTPLClean.Rda")
+```

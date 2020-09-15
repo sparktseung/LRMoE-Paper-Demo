@@ -1,9 +1,9 @@
 ---
 title: "LRMoE DemoData Fitting"
 author: "Spark Tseung"
-date: "March 2, 2020"
+date: "Sept 14, 2020"
 output: 
-  pdf_document
+  md_document
 ---
 
 ```{r setup, include=FALSE}
@@ -15,13 +15,13 @@ library(matrixStats)
 
 ## Introduction
 
-This document contains the data fitting process for the dataset `DemoData` included in the `LRMoE` package. This serves as an example of using the main fitting function `LRMoE.fit` included in the package.
+This document contains the data fitting process for the dataset `LRMoEDemoData` included in the `LRMoE` package. This serves as an example of using the main fitting function `LRMoEFit` included in the package.
 
 ## Data Loading
 
-The `DemoData` in the package can be loaded as follows. The data generation process has been described in a previous document.
+The `LRMoEDemoData` in the package can be loaded as follows. The data generation process has been described in [a previous document](https://work.sparktseung.com/LRMoE-Paper-Demo/1-DemoDataGeneration/DemoDataGeneration-jekyll.html).
 ```{r}
-data("DemoData")
+data("LRMoEDemoData")
 ```
 
 
@@ -78,13 +78,13 @@ hyper.params = list( list(c(1, Inf), c(9, 0.5, 9, 0.5)),
 Now we are ready to call the fitting function. It is optional to print out intermediate updates of parameters. (*Note: The fitting function takes about 5 minutes to run.*)
 
 ```{r, eval=TRUE}
-fitted.model = LRMoEprivate::LRMoE.fit(Y = Y.obs, X = X.obs, n.comp = n.comp,
+fitted.model = LRMoE::LRMoEFit(Y = Y.obs, X = X.obs, n.comp = n.comp,
                  comp.dist = comp.dist,
                  alpha.init = alpha.init,
                  zero.init = zero.init, params.init = params.init,
                  penalty = TRUE,
                  hyper.alpha = hyper.alpha, hyper.params = hyper.params,
-                 print = FALSE
+                 print = TRUE
                  )
 
 ```
@@ -152,13 +152,13 @@ hyper.params = list( list(c(5, 5), c(5, 5)),
 The fitting function can be called similarly. (*Note: The fitting function takes about 10 minutes to run, mostly due to numerical integration and optimization of the Burr component.*)
 
 ```{r, eval=TRUE}
-fitted.model.new = LRMoEprivate::LRMoE.fit(Y = Y.obs, X = X.obs, n.comp = n.comp,
+fitted.model.new = LRMoE::LRMoEFit(Y = Y.obs, X = X.obs, n.comp = n.comp,
                      comp.dist = comp.dist,
                      alpha.init = alpha.guess,
                      zero.init = zero.guess, params.init = params.guess,
                      penalty = TRUE,
                      hyper.alpha = hyper.alpha, hyper.params = hyper.params,
-                     print = FALSE
+                     print = TRUE
                      )
 ```
 
