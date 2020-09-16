@@ -1,0 +1,157 @@
+---
+title: "Model Initialization - French Auto Insurance"
+author: "Spark Tseung"
+date: "Sept 16, 2020"
+output: md_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+library(LRMoE)
+library(reshape2)
+library(matrixStats)
+library(EnvStats)
+library(CASdatasets)
+```
+
+## Introduction
+
+In this document, we will transform the cleaned data `freMTPLClean` (see [here](https://work.sparktseung.com/LRMoE-Paper-Demo/3-RealDataPreliminary/RealDataCleaning-jekyll.html)) into the required format by the `LRMoE` model. In addition, we will use the Clustered Method of Moments (CMM) to obtain some initialization of parameter values before fitting the models.
+
+```{r}
+# Load previoucly cleaned data
+load("freMTPLClean.Rda")
+```
+
+
+\pagebreak
+
+## Formatting Data
+
+For illustration purposes, we will fit an LRMoE with one respose variable `ClaimAmount` only. The following code shows how to format input matrices `Y` and `X` required by the `LRMoE` package.
+
+```{r}
+# Make Y matrix
+sample.size = nrow(df)
+Y = matrix( c(rep(0, sample.size),    # = tl.1
+              df$ClaimAmount,     # = yl.1
+              df$ClaimAmount,     # = tu.1
+              rep(Inf, sample.size)   # = tu.1
+              ), 
+           ncol = 4, byrow = FALSE)
+
+# Make X matrix
+X.continuous = cbind(df$CarAge, df$DriverAge)
+X.power = model.matrix(~df$Power, data = df)     # Default Power  is 'd'
+X.brand = model.matrix(~df$Brand, data = df)     # Default Brand  is 'Fiat'
+X.gas = model.matrix(~df$Gas, data = df)         # Default Gas    is 'Diesel'
+X.region = model.matrix(~df$Region, data = df)   # Default Region is 'Aquitaine'
+X = matrix(cbind(rep(1, sample.size), # Intercept
+                 X.continuous, X.power[,-1], X.brand[,-1], X.gas[,-1], X.region[,-1]),
+           nrow = sample.size, byrow = FALSE)
+
+colnames(X) = c("Intercept", "CarAge", "DriverAge",
+                "Powere", "Powerf", "Powerg", "Powerh", "Poweri", "Powerj", 
+                "Powerk", "Powerl", "Powerm", "Powern", "Powero",
+                "BrandJK", "BrandMCB", "BrandOGF", "BrandOther", "BrandRNC", "BrandVAS",
+                "GasRegular",
+                "RegionBN", "RegionB", "RegionC", "RegionHN", "RegionIF", 
+                "RegionL", "RegionNPC", "RegionPL", "RegionPC")
+
+```
+
+We will save the data for the fitting procedures later.
+```{r}
+save(X, file = "X.Rda")
+save(Y, file = "Y.Rda")
+```
+
+
+## Parameter Initialization
+
+The `LRMoE` fitting function also requires initialization of `n.comp` (number of latent components), `comp.dist` (component distributions by dimension and by component),  `zero.init` (zero inflation) and `params.init` (initialization of component distribution parameters). 
+
+Since component distributions included in `LRMoE` are all uni-modal, a good starting point is to observe the numbers of components is to count the number of peaks in the previous histogram of data. We will consider 3~6 latent components, each with 5 combinations of component distributions. For each case, we use k-means clustering and matching of moments to roughly choose initial parameters.
+
+```{r, include=F, eval=F}
+# Old code
+# Drop response: ClaimNb
+df = df[,-which(names(df) %in% c("ClaimNb"))]
+df.norm = df
+df.norm= df[,-which(names(df) %in% c("PolicyID", "ClaimNb"))]
+
+df.norm$CarAge = 
+  (df.norm$CarAge - mean(df.norm$CarAge))/sd(df.norm$CarAge)
+df.norm$DriverAge = 
+  (df.norm$DriverAge - mean(df.norm$DriverAge))/sd(df.norm$DriverAge)
+df.norm$ClaimAmount = 
+  (df.norm$ClaimAmount - mean(df.norm$ClaimAmount))/sd(df.norm$ClaimAmount)
+```
+
+
+```{r}
+# Normalize data
+X.norm = X
+
+X.norm[,2] = # CarAge
+  (X.norm[,2] - mean(X.norm[,2]))/sd(X.norm[,2])
+X.norm[,3] = # DriverAge
+  (X.norm[,3] - mean(X.norm[,3]))/sd(X.norm[,3])
+```
+
+The `LRMoE` package contains a Clustered Method of Moments initialization function which is used in conjunction of `kmeans`. We look at the 3-component case in detail and skip the rest.
+
+### 3 Latent Components
+
+```{r, message=F}
+set.seed(7777) # For reproducible results
+n.comp = 3
+norm.init.analysis.3 = LRMoE::CMMInit(Y, X.norm, n.comp, type = 'S') # 'S' is for Severity
+```
+
+The returned list `norm.init.analysis.3` contains cluster proportion (of the entire population), zero inflation, summary statsitics and parameter initializations for all selection of component distributions. The user can then choose which distributions to use. As a general rule of thumb, initialization with very extreme parameter values should be avoided.
+
+For example, the initialization of the first component is as follows.
+
+```{r}
+norm.init.analysis.3[[1]]
+```
+
+
+
+### 4~6 Latent Components
+
+```{r, eval=F}
+set.seed(7777) # For reproducible results
+n.comp = 4
+norm.init.analysis.4 = LRMoE::CMMInit(Y, X.norm, n.comp, type = 'S')
+```
+
+
+```{r, eval=F}
+set.seed(7777) # For reproducible results
+n.comp = 5
+norm.init.analysis.5 = LRMoE::CMMInit(Y, X.norm, n.comp, type = 'S')
+```
+
+
+```{r, eval=F}
+set.seed(7777) # For reproducible results
+n.comp = 6
+norm.init.analysis.6 = LRMoE::CMMInit(Y, X.norm, n.comp, type = 'S')
+```
+
+We will save all initilizations for use in the next step.
+```{r, eval=F}
+save(norm.init.analysis.3, file = "RealDataInit3.Rda")
+save(norm.init.analysis.4, file = "RealDataInit4.Rda")
+save(norm.init.analysis.5, file = "RealDataInit5.Rda")
+save(norm.init.analysis.6, file = "RealDataInit6.Rda")
+```
+
+
+
+
+
+
+
