@@ -8,4 +8,5 @@ This is a demo page.
 
 1. [Generating Demo Data](./1-DemoDataGeneration/DemoDataGeneration-jekyll.html)
 
-3. Real Data: [Preliminary Analysis](./3-RealDataPreliminary/RealDataCleaning-jekyll.html)
+3. Real Data: [Preliminary Analysis](./3-RealDataPreliminary/RealDataCleaning-jekyll.html),
+[Parameter Initialization](./3-RealDataPreliminary/RealDataFormatting-jekyll.html)
