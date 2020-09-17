@@ -1,8 +1,8 @@
 ---
-title: "LRMoE RealData Fitting"
+title: "Real Data: Fitting"
 author: "Spark Tseung"
-date: "March 3, 2020"
-output: pdf_document
+date: "Sept 16, 2020"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -16,13 +16,13 @@ library(CASdatasets)
 
 ## Introduction
 
-This document is Part II of a demo series of the `LRMoE` (Logit-weighted Reduced Mixture-of-Experts) package on a real dataset. By analysing a French motor third-party liability insurance dataset in [`CASdatasets`](http://dutangc.free.fr/pub/RRepos/web/CASdatasets-index.html), we will demonstrate the fitting procedure, diagnostics, visualization and predictive functions of the `LRMoE` package. In this document, we focus on parallelly fitting LRMoE models.
+In this document, we focus on parallelly fitting LRMoE models.
 
-## Running `LRMoE.fit` in Parallel
+## Running `LRMoEFit` in Parallel
 
 Fitting LRMoE to a large dataset may be quite computationally intensive. For example, it takes around 5 hours to fit a 4-component LRMoE on the French auto insurance dataset.
 
-In such case, parallel computing with the R package `doParallel` can help significantly shorten the total runtime. The following shows how to structure a code file for running LRMoE in parallel. Note that `X` and `Y` are matrix data files saved in Part I. The lists `model.list` and function `do_fitting` will be discussed in separate sections.
+In such case, parallel computing with the R package `doParallel` can help significantly shorten the total runtime. The following shows how to structure a code file for running LRMoE in parallel. Note that `X` and `Y` are matrix data files saved in [here](https://work.sparktseung.com/LRMoE-Paper-Demo/3-RealDataPreliminary/RealDataFormatting-jekyll.html). The lists `model.list` and function `do_fitting` will be discussed in separate sections.
 
 ```{r, eval=FALSE}
 library(doParallel)
@@ -50,7 +50,7 @@ stopCluster(cl)
 
 ## Generating `model.list`
 
-The `model.list` contains a list of models to run, where each model is structured as a list of model specification and parameter initialization. For example, the following shows the LRMoE model with three zero-inflated lognormal component distributions, where the initialization values are returned by the `cluster.mm.severity` function explained in Part I.
+The `model.list` contains a list of models to run, where each model is structured as a list of model specification and parameter initialization. For example, the following shows the LRMoE model with three zero-inflated lognormal component distributions, where the initialization values are returned by the `CMMInit` function.
 
 ```{r, eval = FALSE}
 model.list = NULL
@@ -67,12 +67,12 @@ comp.dist = matrix( c("ZI-lnorm", "ZI-lnorm", "ZI-lnorm"),
                     nrow = dim.m, byrow = TRUE)
 
 alpha.init = matrix(0, nrow = n.comp, ncol = n.covar)
-alpha.init[,1] = c(log(0.21), log(0.25), log(0.54)) - log(0.54)
+alpha.init[,1] = c(log(0.35), log(0.29), log(0.36)) - log(0.36)
 
-zero.init = matrix( c(0.96, 0.97, 0.96),
+zero.init = matrix( c(0.96, 0.96, 0.96),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(6.57, 1.33), c(6.48, 1.52), c(5.39, 2.20) )
+params.init = list( list( c(6.34, 1.41), c(6.43, 1.43), c(6.53, 1.38) )
                   )
 
 hyper.alpha = 5
@@ -94,7 +94,7 @@ model.list[[length(model.list)+1]] = list(model.name = model.name,
 
 ## Structuring `do_fitting`
 
-The `do_fitting` below will call the `LRMoE.fit` function for fitting an LRMoE model. The fitted model will be saved as a `.Rda` file, and the intermediate update of parameter values are output into a `.txt` file.
+The `do_fitting` below will call the `LRMoEFit` function for fitting an LRMoE model. The fitted model will be saved as a `.Rda` file, and the intermediate update of parameter values are output into a `.txt` file.
 
 It is optional to use the `mailR` package to get email updates of the running status. The mail code may be inserted in the `do_fitting` function.
 
@@ -110,7 +110,7 @@ do_fitting = function(Y, X, b, model)
   sink(file = output.name, append = FALSE, type = c("output", "message"), split = FALSE)
 
   # Call fitting function
-  tryCatch({model.fit = LRMoE::LRMoE.fit(Y = Y, X = X, n.comp = model$n.comp,
+  tryCatch({model.fit = LRMoE::LRMoEFit(Y = Y, X = X, n.comp = model$n.comp,
               comp.dist = model$comp.dist,
               alpha.init = model$alpha.init, 
               zero.init = model$zero.init, params.init = model$params.init,
