@@ -1,3 +1,9 @@
+# Real Data: Parallel Fitting
+
+**Author**: [Spark Tseung](https://sparktseung.com)
+
+**Last Modified**: Sept 15, 2020
+
 Introduction
 ------------
 
