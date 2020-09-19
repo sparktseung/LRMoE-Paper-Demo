@@ -82,7 +82,10 @@ alpha.init[,1] = c(log(0.35), log(0.29), log(0.36)) - log(0.36)
 zero.init = matrix( c(0.96, 0.96, 0.96),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(0.9, 1425.7), c(6.43, 1.43), c(6.53, 1.38) )
+# params.init = list( list( c(0.9, 1425.7), c(6.43, 1.43), c(6.53, 1.38) )
+# )
+
+params.init = list( list( c(2, 1425.7), c(6.43, 1.43), c(6.53, 1.38) )
 )
 
 hyper.alpha = 5
@@ -112,7 +115,10 @@ alpha.init[,1] = c(log(0.35), log(0.29), log(0.36)) - log(0.36)
 zero.init = matrix( c(0.96, 0.96, 0.96),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(1530, 244), c(0.88, 1579.76), c(6.53, 1.38) )
+# params.init = list( list( c(1530, 244), c(0.88, 1579.76), c(6.53, 1.38) )
+# )
+
+params.init = list( list( c(1530, 244), c(2, 1579.76), c(6.53, 1.38) )
 )
 
 hyper.alpha = 5
@@ -242,7 +248,10 @@ alpha.init[,1] = c(log(0.27), log(0.24), log(0.20), log(0.29)) - log(0.29)
 zero.init = matrix( c(0.96, 0.96, 0.97, 0.96),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(0.88, 1447.86), c(1702, 269), c(6.50, 1.44), c(6.50, 1.34) )
+# params.init = list( list( c(0.88, 1447.86), c(1702, 269), c(6.50, 1.44), c(6.50, 1.34) )
+# )
+
+params.init = list( list( c(2, 1447.86), c(1702, 269), c(6.50, 1.44), c(6.50, 1.34) )
 )
 
 hyper.alpha = 5
@@ -303,7 +312,10 @@ alpha.init[,1] = c(log(0.27), log(0.24), log(0.20), log(0.29)) - log(0.29)
 zero.init = matrix( c(0.96, 0.96, 0.97, 0.96),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(1.80, 1.66, 1534.07), c(1702, 269), c(6.50, 1.44), c(0.879, 1503.55) )
+# params.init = list( list( c(1.80, 1.66, 1534.07), c(1702, 269), c(6.50, 1.44), c(0.879, 1503.55) )
+# )
+
+params.init = list( list( c(1.80, 1.66, 1534.07), c(1702, 269), c(6.50, 1.44), c(2, 1503.55) )
 )
 
 hyper.alpha = 5
@@ -333,7 +345,10 @@ alpha.init[,1] = c(log(0.27), log(0.24), log(0.20), log(0.29)) - log(0.29)
 zero.init = matrix( c(0.96, 0.96, 0.97, 0.96),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(0.881, 1567.43), c(1702, 269), c(6.50, 1.44), c(0.879, 1503.55) )
+# params.init = list( list( c(0.881, 1567.43), c(1702, 269), c(6.50, 1.44), c(0.879, 1503.55) )
+# )
+
+params.init = list( list( c(2, 1567.43), c(1702, 269), c(6.50, 1.44), c(2, 1503.55) )
 )
 
 hyper.alpha = 5
@@ -364,7 +379,10 @@ alpha.init[,1] = c(log(0.27), log(0.24), log(0.20), log(0.29)) - log(0.29)
 zero.init = matrix( c(0.96, 0.96, 0.97, 0.96),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(0.881, 1567.43), c(1702, 269), c(1868, 273), c(0.879, 1503.55) )
+# params.init = list( list( c(0.881, 1567.43), c(1702, 269), c(1868, 273), c(0.879, 1503.55) )
+# )
+
+params.init = list( list( c(2, 1567.43), c(1702, 269), c(1868, 273), c(2, 1503.55) )
 )
 
 hyper.alpha = 5
@@ -498,7 +516,10 @@ alpha.init[,1] = c(log(0.21), log(0.19), log(0.16), log(0.26), log(0.18)) - log(
 zero.init = matrix( c(0.96, 0.96, 0.97, 0.96, 0.96),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(1.86, 1.58, 1582.01), c(0.86, 1597.99), c(6.58, 1.36), c(1706, 305), c(6.34, 1.40) )
+# params.init = list( list( c(1.86, 1.58, 1582.01), c(0.86, 1597.99), c(6.58, 1.36), c(1706, 305), c(6.34, 1.40) )
+# )
+
+params.init = list( list( c(1.86, 1.58, 1582.01), c(2, 1597.99), c(6.58, 1.36), c(1706, 305), c(6.34, 1.40) )
 )
 
 hyper.alpha = 5
@@ -530,7 +551,10 @@ alpha.init[,1] = c(log(0.21), log(0.19), log(0.16), log(0.26), log(0.18)) - log(
 zero.init = matrix( c(0.96, 0.96, 0.97, 0.96, 0.96),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(1.86, 1.58, 1582.01), c(0.86, 1597.99), c(6.58, 1.36), c(1706, 305), c(0.94, 1444.30) )
+# params.init = list( list( c(1.86, 1.58, 1582.01), c(0.86, 1597.99), c(6.58, 1.36), c(1706, 305), c(0.94, 1444.30) )
+# )
+
+params.init = list( list( c(1.86, 1.58, 1582.01), c(2, 1597.99), c(6.58, 1.36), c(1706, 305), c(2, 1444.30) )
 )
 
 hyper.alpha = 5
@@ -562,7 +586,10 @@ alpha.init[,1] = c(log(0.21), log(0.19), log(0.16), log(0.26), log(0.18)) - log(
 zero.init = matrix( c(0.96, 0.96, 0.97, 0.96, 0.96),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(0.88, 1439.81), c(6.44, 1.44), c(6.58, 1.36), c(1706, 305), c(6.34, 1.40) )
+# params.init = list( list( c(0.88, 1439.81), c(6.44, 1.44), c(6.58, 1.36), c(1706, 305), c(6.34, 1.40) )
+# )
+
+params.init = list( list( c(2, 1439.81), c(6.44, 1.44), c(6.58, 1.36), c(1706, 305), c(6.34, 1.40) )
 )
 
 hyper.alpha = 5
@@ -668,7 +695,10 @@ alpha.init[,1] = c(log(0.21), log(0.10), log(0.20), log(0.19), log(0.15), log(0.
 zero.init = matrix( c(0.96, 0.96, 0.96, 0.96, 0.96, 0.97),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(6.35, 1.43), c(6.44, 1.46), c(0.87, 1535.95), c(6.50, 1.38), c(6.31, 1.41), c(6.59, 1.36) )
+# params.init = list( list( c(6.35, 1.43), c(6.44, 1.46), c(0.87, 1535.95), c(6.50, 1.38), c(6.31, 1.41), c(6.59, 1.36) )
+# )
+
+params.init = list( list( c(6.35, 1.43), c(6.44, 1.46), c(2, 1535.95), c(6.50, 1.38), c(6.31, 1.41), c(6.59, 1.36) )
 )
 
 hyper.alpha = 5
@@ -736,7 +766,10 @@ alpha.init[,1] = c(log(0.21), log(0.10), log(0.20), log(0.19), log(0.15), log(0.
 zero.init = matrix( c(0.96, 0.96, 0.96, 0.96, 0.96, 0.97),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(6.35, 1.43), c(1815, 248), c(0.87, 1535.95), c(6.50, 1.38), c(6.31, 1.41), c(6.59, 1.36) )
+# params.init = list( list( c(6.35, 1.43), c(1815, 248), c(0.87, 1535.95), c(6.50, 1.38), c(6.31, 1.41), c(6.59, 1.36) )
+# )
+
+params.init = list( list( c(6.35, 1.43), c(1815, 248), c(2, 1535.95), c(6.50, 1.38), c(6.31, 1.41), c(6.59, 1.36) )
 )
 
 hyper.alpha = 5
@@ -769,7 +802,10 @@ alpha.init[,1] = c(log(0.21), log(0.10), log(0.20), log(0.19), log(0.15), log(0.
 zero.init = matrix( c(0.96, 0.96, 0.96, 0.96, 0.96, 0.97),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(6.35, 1.43), c(1815, 248), c(0.87, 1535.95), c(6.50, 1.38), c(1.88, 1.83, 1560.95), c(6.59, 1.36) )
+# params.init = list( list( c(6.35, 1.43), c(1815, 248), c(0.87, 1535.95), c(6.50, 1.38), c(1.88, 1.83, 1560.95), c(6.59, 1.36) )
+# )
+
+params.init = list( list( c(6.35, 1.43), c(1815, 248), c(2, 1535.95), c(6.50, 1.38), c(1.88, 1.83, 1560.95), c(6.59, 1.36) )
 )
 
 hyper.alpha = 5
@@ -802,7 +838,10 @@ alpha.init[,1] = c(log(0.21), log(0.10), log(0.20), log(0.19), log(0.15), log(0.
 zero.init = matrix( c(0.96, 0.96, 0.96, 0.96, 0.96, 0.97),
                     nrow = dim.m, byrow = TRUE)
 
-params.init = list( list( c(6.35, 1.43), c(1815, 248), c(0.87, 1535.95), c(1707, 303), c(1.88, 1.83, 1560.95), c(6.59, 1.36) )
+# params.init = list( list( c(6.35, 1.43), c(1815, 248), c(0.87, 1535.95), c(1707, 303), c(1.88, 1.83, 1560.95), c(6.59, 1.36) )
+# )
+
+params.init = list( list( c(6.35, 1.43), c(1815, 248), c(2, 1535.95), c(1707, 303), c(1.88, 1.83, 1560.95), c(6.59, 1.36) )
 )
 
 hyper.alpha = 5
@@ -829,4 +868,4 @@ model.list[[length(model.list)+1]] = list(model.name = model.name,
 
 
 
-save(model.list, file = "model_list.Rda")
+save(model.list, file = "model_list_weibull.Rda")
